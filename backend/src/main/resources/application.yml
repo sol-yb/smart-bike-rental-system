@@ -1,0 +1,45 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: smart-bike-rental-backend
+  datasource:
+    url: jdbc:h2:mem:smartbike_db;DB_CLOSE_DELAY=-1
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        jdbc:
+          lob:
+            non_contextual_creation: true
+  jackson:
+    serialization:
+      write_dates_as_timestamps: false
+
+# Custom App Settings
+app:
+  jwt:
+    # 256-bit key in hex
+    secret: 407f35368a5c2bc04780517596a2d71ee787e9cf2efba156947701e149c25cf6d540
+    expiration-ms: 86400000 # 24 hours
+  mqtt:
+    # We use public broker for zero-install run
+    broker-url: tcp://broker.emqx.io:1883
+    client-id: smart-bike-backend
+  geofence:
+    # Coordinates of a rectangular campus geofence zone in latitude,longitude format.
+    # The default is centered around a generic sample coordinates (e.g. 9.03, 38.75).
+    # ESP32 emulator will spawn inside this boundary.
+    boundary-points:
+      - 9.030,38.750
+      - 9.045,38.750
+      - 9.045,38.765
+      - 9.030,38.765

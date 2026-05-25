@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: smartbike-db
+    restart: always
+    environment:
+      POSTGRES_USER: smartbike
+      POSTGRES_PASSWORD: smartbike_pass
+      POSTGRES_DB: smartbike_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  mqtt:
+    image: eclipse-mosquitto:latest
+    container_name: smartbike-mqtt
+    restart: always
+    ports:
+      - "1883:1883"
+      - "9001:9001"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+
+  app:
+    build: ./backend
+    container_name: smartbike-app
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/smartbike_db
+      SPRING_DATASOURCE_USERNAME: smartbike
+      SPRING_DATASOURCE_PASSWORD: smartbike_pass
+      APP_MQTT_BROKER_URL: tcp://mqtt:1883
+    depends_on:
+      - db
+      - mqtt
+
+volumes:
+  pgdata:
