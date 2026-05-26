@@ -38,6 +38,12 @@ public class RideService {
     @Autowired
     private NotificationService notificationService;
 
+    @Autowired
+    private com.smartbike.rental.pricing.PricingService pricingService;
+
+    @Autowired
+    private CouponService couponService;
+
     public RideDto getActiveRideByUser(UUID userId) {
         Ride ride = rideRepository.findByUserIdAndActive(userId, true)
                 .orElseThrow(() -> new ResourceNotFoundException("No active ride found for user"));
@@ -109,6 +115,11 @@ public class RideService {
 
     @Transactional
     public RideDto endRide(UUID rideId, double endLat, double endLon) {
+        return endRide(rideId, endLat, endLon, null);
+    }
+
+    @Transactional
+    public RideDto endRide(UUID rideId, double endLat, double endLon, String couponCode) {
         Ride ride = rideRepository.findById(rideId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ride not found"));
 
@@ -129,14 +140,15 @@ public class RideService {
         );
         ride.setDistance(distance);
 
-        // Calculate cost
-        // Formula: Base 5 birr + 0.5 birr/minute + 2 birr/km
-        long minutes = Duration.between(ride.getStartTime(), endTime).toMinutes();
-        if (minutes < 1) minutes = 1; // charge at least 1 min
-        double costDouble = 5.0 + (minutes * 0.5) + (distance * 2.0);
-        BigDecimal cost = BigDecimal.valueOf(costDouble).setScale(2, BigDecimal.ROUND_HALF_UP);
+        // Calculate cost using the Dynamic Pricing Engine
+        BigDecimal cost = pricingService.calculateRideFare(ride, couponCode);
         ride.setCost(cost);
         ride.setActive(false);
+
+        // Redeem coupon if applicable
+        if (couponCode != null && !couponCode.trim().isEmpty() && couponService.validateCoupon(couponCode)) {
+            couponService.redeemCoupon(couponCode);
+        }
 
         // Update bike state
         bike.setState(BikeState.AVAILABLE);

@@ -38,8 +38,9 @@ public class RideController {
     public ResponseEntity<RideDto> endRide(
             @PathVariable UUID id,
             @RequestParam double latitude,
-            @RequestParam double longitude) {
-        return ResponseEntity.ok(rideService.endRide(id, latitude, longitude));
+            @RequestParam double longitude,
+            @RequestParam(required = false) String couponCode) {
+        return ResponseEntity.ok(rideService.endRide(id, latitude, longitude, couponCode));
     }
 
     @GetMapping("/active")
