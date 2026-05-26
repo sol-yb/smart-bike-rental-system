@@ -53,6 +53,10 @@ public class MqttService implements MqttCallback {
     @Lazy
     private NotificationService notificationService;
 
+    @Autowired
+    @Lazy
+    private GpsSimulationService gpsSimulationService;
+
     private MqttClient mqttClient;
 
     @PostConstruct
@@ -159,7 +163,7 @@ public class MqttService implements MqttCallback {
 
             gpsLogRepository.save(GpsLog.builder().bike(bike).latitude(lat).longitude(lon).build());
 
-            geofenceService.checkGeofence(bike, lat, lon);
+            gpsSimulationService.processGpsPing(bike, lat, lon);
 
             wsPayload.put("event", "BIKE_GPS");
             wsPayload.put("latitude", lat);

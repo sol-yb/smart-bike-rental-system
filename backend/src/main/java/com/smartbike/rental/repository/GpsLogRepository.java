@@ -7,4 +7,9 @@ import java.util.UUID;
 
 public interface GpsLogRepository extends JpaRepository<GpsLog, UUID> {
     List<GpsLog> findByBikeIdOrderByCreatedAtDesc(UUID bikeId);
+    List<GpsLog> findByBikeIdAndCreatedAtBetweenOrderByCreatedAtAsc(
+            UUID bikeId, 
+            java.time.LocalDateTime start, 
+            java.time.LocalDateTime end
+    );
 }
