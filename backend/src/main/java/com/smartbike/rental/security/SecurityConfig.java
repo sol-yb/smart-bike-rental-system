@@ -25,9 +25,19 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    @Autowired
+    private RateLimitingFilter rateLimitingFilter;
+
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    @Bean
+    public org.springframework.security.access.hierarchicalroles.RoleHierarchy roleHierarchy() {
+        return org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl.fromHierarchy(
+                "ROLE_ADMIN > ROLE_OPERATOR\nROLE_OPERATOR > ROLE_USER"
+        );
     }
 
     @Bean
@@ -48,6 +58,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
+            .addFilterBefore(rateLimitingFilter, JwtAuthenticationFilter.class)
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
